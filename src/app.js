@@ -8,4 +8,4 @@ app.use( express.json())
 
 app.use('/api', healthRouter);
 app.use('/api', eventsRouter);
-app.use('/api', sessionsRouter);
+app.use('/api/sessions', sessionsRouter);

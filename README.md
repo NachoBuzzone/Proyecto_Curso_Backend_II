@@ -1,26 +1,30 @@
 ﻿# Plataforma de Eventos e Inscripciones - Backend II
 
-## Pre-entrega 1: Refactor Arquitectónico Inicial
+## Pre-entrega 2: Registro Seguro de Usuarios
 
-Base inicial y estructura modular en capas para el backend de la plataforma de gestión de eventos, usuarios e inscripciones.
+API REST modular para la gestión de una **Plataforma de Eventos e Inscripciones**, diseñada para administrar eventos, usuarios, inscripciones y control de cupos. 
+
+En esta etapa se implementa el flujo completo de **registro seguro de usuarios** con persistencia en MongoDB mediante Mongoose, validaciones en la frontera, normalización de datos y encriptación de contraseñas con `bcrypt`.
 
 ---
 
-## Como Ejecutarlo
-1. Instalar dependencias: npm install
-2. Modo desarrollo (recarga automática): npm run dev
-El servidor quedará escuchando en http://localhost:3000 (o el puerto configurado).
+## Funcionalidades Implementadas
 
-## Temática Elegida
-API REST modular para la gestión de una **Plataforma de Eventos e Inscripciones**, diseñada para administrar eventos, usuarios, inscripciones y control de cupos. En esta primera etapa se establece la arquitectura base en capas y la configuración inicial del servidor.
+### 1. Modelo de Usuario (`User`) con Mongoose
+* **`first_name`**: Nombre del usuario (obligatorio).
+* **`last_name`**: Apellido del usuario (obligatorio).
+* **`email`**: Correo electrónico único e indexado.
+* **`password`**: Contraseña almacenada como hash seguro.
+* **`role`**: Rol del usuario restringido por `enum` (`user`, `organizer`, `admin`), con valor por defecto `user`.
 
-## ⚙️ Configuración de Variables de Entorno
-1. Crear un archivo `.env` en la raíz del proyecto basándose en `.env.example`:
-   ```env
-   PORT=
-   NODE_ENV=
-   MONGO_URL=mongodb:...
-   JWT_SECRET=tu_clave_secreta```
+### 2. Registro Seguro (`POST /api/sessions/register`)
+* **Validación de entrada**: Middleware para verificar campos obligatorios y formato/longitud de contraseña.
+* **Normalización de datos**: Conversión del email a minúsculas y eliminación de espacios en blanco (`trim`).
+* **Control de duplicados**: Detección y manejo de errores por correo ya registrado retornando estado HTTP `409 Conflict`.
+* **Encriptación**: Hasheo asíncrono de contraseñas mediante `bcrypt`.
+* **Sanitización de respuesta**: Retorno de los datos del usuario creado excluyendo el hash de la contraseña por seguridad.
+
+---
 
 ## Estructura del Proyecto
 
@@ -28,20 +32,14 @@ El proyecto sigue una arquitectura en capas para garantizar escalabilidad y sepa
 
 ```text
 src/
-├── config/         # Configuración del entorno y variables
+├── config/         # Configuración del entorno, base de datos y variables
 ├── controllers/    # Controladores de las peticiones HTTP
 ├── dao/            # Data Access Object (acceso a datos)
-├── middlewares/    # Middlewares de aplicación y rutas
+├── middlewares/    # Middlewares de validación y manejo de errores
 ├── models/         # Esquemas y modelos de datos (Mongoose)
 ├── repositories/   # Capa de repositorios
 ├── routes/         # Definición de rutas y endpoints
 ├── services/       # Lógica de negocio
-├── utils/          # Funciones y utilidades generales
-├── app.js          # Configuración de Express y middlewares
-└── server.js       # Inicialización del servidor HTTP y puerto```
-
-## Rutas Disponibles
-
-GET /api/health -> Verifica el estado y disponibilidad del servidor
-GET /api/events -> Retorna el listado inicial de eventos (payload: [])
-GET /api/sessions -> Verifica la inicialización del módulo de sesiones/usuarios
+├── utils/          # Funciones y utilidades generales (bcrypt, respuestas)
+├── app.js          # Configuración de Express y middlewares globales
+└── server.js       # Inicialización del servidor HTTP y conexión a DB
